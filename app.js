@@ -1,7 +1,7 @@
 const express = require('express');
+
 const app = express();
 const cors = require('cors');
-
 app.use(cors({
     origin: '*',
     methods: 'GET,POST,PUT,DELETE',
@@ -122,6 +122,65 @@ const usersListHandler = (req, res) => {
 
 
 }
+const usersDataHandler = (req, res) => {
+    
+
+    const jwt = require('njwt')
+    let token  = req.get("Authorization");
+    if (token != undefined){
+        console.log("we have a token:" + token)
+    }else{
+      console.log("No token in header checking for a tkn query param (only for use in dev")
+      if (req.query.tkn=="test"){
+        token = req.query.tkn
+      }
+      if (token === undefined){
+        console.log("Nada");
+        const errResult = {
+          code: 401,
+          message: "invalid credentials"
+      }
+        res.status(errResult.code).json(errResult);
+        return
+      }
+    }
+    if (token != "test"){
+
+    try {
+        var decoded = jwt.verify(token.substring(7), 'top-secret-phrase');
+      } catch(err) {
+        const errResult = {
+            code: 401,
+            message: "invalid credentials"
+        }
+          res.status(errResult.code).json(errResult);
+          return
+      }
+    }
+ 
+// Sample data 
+const falso = require('@ngneat/falso');
+
+const data = [];
+
+for (let i=0;i<1000;i++){
+    data.push(
+        {
+            id: falso.randUuid(),
+            firstName: falso.randFirstName(),
+            lastName: falso.randLastName(),
+            email: falso.randEmail(),
+            department: falso.randDepartment(),
+        }
+    )
+}
+   
+    
+
+      res.json(data);
+
+
+}
 
 
 app.get('/', (req, res) => {
@@ -132,7 +191,7 @@ app.get('/', (req, res) => {
 app.post('/login', loginHandler);
 
 app.get('/userslist',usersListHandler);
-
+app.get('/userdata', usersDataHandler)
 app.get('/users/:uid',userHandler);
 app.listen(3030, () => {
   console.log('API listening on port 3030!');
